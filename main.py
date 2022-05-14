@@ -1,10 +1,8 @@
-from typing import Optional
+import random
 
 from fastapi import FastAPI
+from fastapi.responses import HTMLResponse
 from fastapi.middleware.cors import CORSMiddleware
-
-
-import random
 
 app = FastAPI()
 
@@ -21,9 +19,19 @@ app.add_middleware(
     allow_headers=["*"],
 )
 
+@app.get('/', response_class=HTMLResponse)
+def get_home():
+    with open('./files/index.html', 'r') as f:
+        html = f.read()
+    return html
+
 
 @app.get("/musti")
-def read_root():
+def get_musti():
     statusses = ['Aanwezig', "Niet aanwezig", "Op weg naar buiten"]
 
     return {"status": random.choice(statusses)}
+
+@app.get("/model/retrain")
+def retrain_model():
+    return 'retrained'
