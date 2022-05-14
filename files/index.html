@@ -76,9 +76,9 @@
             <p class="data-text">Musti is: <span id="data" class="data">...</span></p>
             <span class="btn" id="btn" onclick="refresh()"><i class="fa-solid fa-arrows-rotate"></i></span>
         </div>
-        <div>
-            <span class="btn-retrain" id="retrain" onclick="retrain()">Hertrainen Model</span>
-        </div>
+        <!-- <div>
+            <span class="btn-retrain" id="retrain">Hertrainen Model</span>
+        </div> -->
     </main>
 
     <script>
@@ -92,23 +92,23 @@
             data.innerHTML = ret?.status
         }
 
-        async function retrain()
-        {
-            const btn = document.getElementById('retrain')
-            if(!btn.classList.contains('disable'))
-            {
-                const hrf = document.location.origin + '/model/retrain';
-                btn.disabled = true
-                btn.classList.add('disable')
+        // async function retrain()
+        // {
+        //     const btn = document.getElementById('retrain')
+        //     if(!btn.classList.contains('disable'))
+        //     {
+        //         const hrf = document.location.origin + '/model/retrain';
+        //         btn.disabled = true
+        //         btn.classList.add('disable')
 
-                const ret = await (await fetch(hrf)).json();
-                await new Promise(r => setTimeout(r, 3000))
+        //         const ret = await (await fetch(hrf)).json();
+        //         await new Promise(r => setTimeout(r, 3000))
 
-                btn.classList.remove('disable')
-                btn.disabled = false
-                btn.innerHTML = 'Retrained<br>Opnieuw Hertrainen?'
-            }
-        }
+        //         btn.classList.remove('disable')
+        //         btn.disabled = false
+        //         btn.innerHTML = 'Retrained<br>Opnieuw Hertrainen?'
+        //     }
+        // }
 
         refresh()
     </script>

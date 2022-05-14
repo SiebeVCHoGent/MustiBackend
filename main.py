@@ -3,6 +3,9 @@ import random
 from fastapi import FastAPI
 from fastapi.responses import HTMLResponse
 from fastapi.middleware.cors import CORSMiddleware
+from fastapi_utils.tasks import repeat_every
+
+CHECK_EVERY_SECONDS = 60
 
 app = FastAPI()
 
@@ -32,6 +35,7 @@ def get_musti():
 
     return {"status": random.choice(statusses)}
 
-@app.get("/model/retrain")
+@app.on_event('startup')
+@repeat_every(seconds=CHECK_EVERY_SECONDS)
 def retrain_model():
-    return 'retrained'
+    print('test')
