@@ -1,5 +1,6 @@
 import random
 import os
+import re
 import datetime as dt
 import base64
 
@@ -8,7 +9,7 @@ from fastapi.responses import HTMLResponse, StreamingResponse
 from fastapi.middleware.cors import CORSMiddleware
 from fastapi_utils.tasks import repeat_every
 
-CHECK_EVERY_SECONDS = 5
+CHECK_EVERY_SECONDS = 60
 FILE_PATH = './files/images'
 last_files = list()
 
@@ -38,7 +39,7 @@ def get_home():
 def get_musti():
     biggest = max(last_files, key=lambda f: f[1])
 
-    with open(FILE_PATH + '/' + biggest[0], 'rb') as im:
+    with open(biggest[0], 'rb') as im:
         imageB64 = base64.b64encode(im.read())
 
     statusses = ['Aanwezig', "Niet aanwezig", "Op weg naar buiten"]
@@ -49,14 +50,19 @@ def get_musti():
 @repeat_every(seconds=CHECK_EVERY_SECONDS)
 def retrain_model():
     global last_files
-    def to_date(str):
-        return dt.datetime.strptime(str, '%Y%m%d_%H%M%S')
+    def to_date(date_str):
+        return dt.datetime.strptime(date_str, '%Y%m%d_%H%M%S')
     
-    files = [(f, to_date(os.path.splitext(f)[0])) for f in os.listdir(FILE_PATH)]
+    files = []
+    reg = re.compile('[\d]{8}_[\d]{6}.jpg$')
+    for dir in list(os.walk(FILE_PATH)):
+        files.extend([dir[0] + '/' + f for f in dir[2] if reg.match(os.path.basename(f))])
+
+    files = [(f, to_date(os.path.splitext(os.path.basename(f))[0]))  for f in files]
+
     if files != last_files:
         last_files = files
         retrain_model()
-    print(files)
 
 
 def retrain_model():
