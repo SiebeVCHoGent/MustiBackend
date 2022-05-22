@@ -3,14 +3,19 @@ import os
 import re
 import datetime as dt
 import base64
+import pickle
 
 from fastapi import FastAPI
-from fastapi.responses import HTMLResponse, StreamingResponse
+from fastapi.responses import HTMLResponse
 from fastapi.middleware.cors import CORSMiddleware
 from fastapi_utils.tasks import repeat_every
+from xgboost import train
+
+from model.train import train_model, read_image, get_status
 
 CHECK_EVERY_SECONDS = 60
 FILE_PATH = './files/images'
+MODEL_SAVE_PATH = './model/model.pickles'
 last_files = list()
 
 app = FastAPI()
@@ -37,14 +42,30 @@ def get_home():
 
 @app.get("/musti")
 def get_musti():
-    biggest = max(last_files, key=lambda f: f[1])
+    try:
+        # get most recent picture
+        biggest = max(last_files, key=lambda f: f[1])
+        
+        with open(biggest[0], 'rb') as im:
+            imageB64 = base64.b64encode(im.read())
 
-    with open(biggest[0], 'rb') as im:
-        imageB64 = base64.b64encode(im.read())
+        # read model
+        model = pickle.load(open(MODEL_SAVE_PATH, 'rb'))
+        
+        if model:
+            pred = model.predict(read_image(biggest[0]))
+            status = get_status(pred)
+        else:
+            status = 'Model niet geladen'
 
-    statusses = ['Aanwezig', "Niet aanwezig", "Op weg naar buiten"]
+        test = None
+        statusses = ['Aanwezig', "Niet aanwezig", "Op weg naar buiten"]
+    except Exception as e:
+        print(e)
+        status = 'Model niet geladen'
+        imageB64 = ''
 
-    return {"status": random.choice(statusses), 'image': imageB64}
+    return {"status": status, 'image': imageB64}
 
 @app.on_event('startup')
 @repeat_every(seconds=CHECK_EVERY_SECONDS)
@@ -66,4 +87,6 @@ def retrain_model():
 
 
 def retrain_model():
-    print('RETRAINING')
+    # model = train_model()
+    # pickle.dump(model, open(MODEL_SAVE_PATH, 'wb'))
+    print('Model retrained')
