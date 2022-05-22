@@ -42,28 +42,21 @@ def get_home():
 
 @app.get("/musti")
 def get_musti():
-    try:
-        # get most recent picture
-        biggest = max(last_files, key=lambda f: f[1])
-        
-        with open(biggest[0], 'rb') as im:
-            imageB64 = base64.b64encode(im.read())
+    # get most recent picture
+    biggest = max(last_files, key=lambda f: f[1])
+    
+    with open(biggest[0], 'rb') as im:
+        imageB64 = base64.b64encode(im.read())
 
-        # read model
-        model = pickle.load(open(MODEL_SAVE_PATH, 'rb'))
-        
-        if model:
-            pred = model.predict(read_image(biggest[0]))
-            status = get_status(pred)
-        else:
-            status = 'Model niet geladen'
-
-        test = None
-        statusses = ['Aanwezig', "Niet aanwezig", "Op weg naar buiten"]
-    except Exception as e:
-        print(e)
+    # read model
+    model = pickle.load(open(MODEL_SAVE_PATH, 'rb'))
+    
+    if model:
+        pred = model.predict(read_image(biggest[0]))
+        status = get_status(pred)
+    else:
         status = 'Model niet geladen'
-        imageB64 = ''
+
 
     return {"status": status, 'image': imageB64}
 

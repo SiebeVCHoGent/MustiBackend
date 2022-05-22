@@ -1,6 +1,7 @@
 # Python ≥3.5 is required
 from operator import index
 import sys
+from matplotlib import axis
 assert sys.version_info >= (3, 5)
 
 # Scikit-Learn ≥0.20 is required
@@ -55,9 +56,9 @@ def load_dataframe():
             continue
 
         for file in os.listdir(f'{PATH}/{folder}'):
-            print(file)
+            print(folder, file, target_value(folder))
             img = cv2.imread(f'{PATH}/{folder}/{file}', 0)
-            img = cv2.normalize(img,np.zeros((640, 352)), 0, 1000, cv2.NORM_MINMAX)
+            img = cv2.normalize(img,np.zeros((640, 352)), 0, 1000)
             # add them to a dataframe
             imgd = dict()
             imgd['target'] = target_value(folder)
@@ -84,6 +85,8 @@ def load_dataframe():
 
 def train_model():
     musti = load_dataframe()
+    pickle.dump(musti, open('./model/df.pick', 'wb'))
+
     musti.info()
     X, y = musti.drop('target', axis=1), musti['target']
     y = y.astype(np.uint8)
@@ -102,19 +105,16 @@ def train_model():
     return model
 
 def read_image(path):
-    print(path)
     img = cv2.imread(path, 0)
-    img = cv2.normalize(img,np.zeros((640, 352)), 0, 1000, cv2.NORM_MINMAX)
+    # img = cv2.normalize(img, np.zeros((640, 352)), 0, 1000)
 
     imgd = dict()
     c = 0
     flatted = img.flatten()
-    print(len(flatted))
+
     for i in flatted:
         c += 1
         imgd[f'p{c}'] = [i]
 
     df = pd.DataFrame.from_dict(imgd)
-    print(len(df.columns))
-    print(df.values)
     return df.values
