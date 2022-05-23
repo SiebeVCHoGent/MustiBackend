@@ -1,5 +1,6 @@
 __pycache__/*
 *.jpg
+!Error.jpg
 *.pick
 *.pickles
 __pycache__/main.cpython-39.pyc
