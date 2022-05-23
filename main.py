@@ -52,26 +52,24 @@ def get_musti():
     '''
 
     # get most recent picture
-    biggest = max(last_files, key=lambda f: f[1])
-    
-    with open(biggest[0], 'rb') as im:
-        imageB64 = base64.b64encode(im.read())
-
-    # read model
-    model = pickle.load(open(MODEL_SAVE_PATH, 'rb'))
-    
-    if model:
-        pred = model.predict(read_image(biggest[0]))
-        status = get_status(pred)
-    else:
-        status = 'Model niet geladen'
-        # Load kitkat because error
-        with open('./files/images/Error.jpg', 'rb') as im:
+    if last_files:
+        biggest = max(last_files, key=lambda f: f[1])
+        with open(biggest[0], 'rb') as im:
             imageB64 = base64.b64encode(im.read())
+
+        # read model
+        model = pickle.load(open(MODEL_SAVE_PATH, 'rb'))
+        
+        if model:
+            pred = model.predict(read_image(biggest[0]))
+            status = get_status(pred)
+        return {"status": status, 'image': imageB64}
     
-
-
-    return {"status": status, 'image': imageB64}
+    status = 'Model niet geladen'
+    # Load kitkat because error
+    with open('./files/images/Error.jpg', 'rb') as im:
+        imageB64 = base64.b64encode(im.read())
+    
 
 @app.on_event('startup')
 @repeat_every(seconds=CHECK_EVERY_SECONDS)
