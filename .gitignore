@@ -1,4 +1,5 @@
 __pycache__/*
 *.jpg
+!Error.jpg
 *.pick
 *.pickles
