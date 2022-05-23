@@ -90,8 +90,13 @@ def retrain_model():
     files = [(f, to_date(os.path.splitext(os.path.basename(f))[0]))  for f in files]    
     
     # Get last files after startup
+    if not os.path.exists(LAST_FILES_SAVE_PATH):
+        pickle.dump([], open(LAST_FILES_SAVE_PATH, 'wb'))
+    
+
     if not last_files:
         last_files = pickle.load(open(LAST_FILES_SAVE_PATH, 'rb'))
+
 
     if files != last_files:
         last_files = files
