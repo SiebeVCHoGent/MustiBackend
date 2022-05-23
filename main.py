@@ -12,7 +12,7 @@ from fastapi_utils.tasks import repeat_every
 from model.train import train_model, read_image, get_status
 
 # Standards
-CHECK_EVERY_SECONDS = 5
+CHECK_EVERY_SECONDS = 60
 FILE_PATH = './files/images'
 MODEL_SAVE_PATH = './model/model.pickles'
 LAST_FILES_SAVE_PATH = './model/last_files.pickles'
@@ -70,6 +70,8 @@ def get_musti():
     with open('./files/images/Error.jpg', 'rb') as im:
         imageB64 = base64.b64encode(im.read())
     
+    return {"status": status, 'image': imageB64}
+
 
 @app.on_event('startup')
 @repeat_every(seconds=CHECK_EVERY_SECONDS)
