@@ -83,9 +83,13 @@ def load_dataframe():
     return musti
 
 
+CREATE_DATAFRAME = True
 def train_model():
-    musti = load_dataframe()
-    pickle.dump(musti, open('./model/df.pick', 'wb'))
+    if CREATE_DATAFRAME:
+        musti = load_dataframe()
+        pickle.dump(musti, open('./model/df.pick', 'wb'))
+    else:
+        musti = pickle.load(open('./model/df.pick', 'rb'))
 
     musti.info()
     X, y = musti.drop('target', axis=1), musti['target']
@@ -95,6 +99,7 @@ def train_model():
 
     scaler = StandardScaler()
     X_train = scaler.fit_transform(X_train)
+    pickle.dump(scaler, open('./model/scaler.pickles', 'wb'))
     X_test = scaler.transform(X_test)
 
     # fit model
@@ -106,7 +111,7 @@ def train_model():
 
 def read_image(path):
     img = cv2.imread(path, 0)
-    # img = cv2.normalize(img, np.zeros((640, 352)), 0, 1000)
+    img = cv2.normalize(img, np.zeros((640, 352)), 0, 1000)
 
     imgd = dict()
     c = 0
@@ -117,4 +122,9 @@ def read_image(path):
         imgd[f'p{c}'] = [i]
 
     df = pd.DataFrame.from_dict(imgd)
-    return df.values
+
+    # Read Scaler
+    scaler = pickle.load(open('./model/scaler.pickles', 'rb'))
+
+    df = scaler.transform(df)
+    return df

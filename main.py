@@ -1,4 +1,3 @@
-import random
 import os
 import re
 import datetime as dt
@@ -9,15 +8,17 @@ from fastapi import FastAPI
 from fastapi.responses import HTMLResponse
 from fastapi.middleware.cors import CORSMiddleware
 from fastapi_utils.tasks import repeat_every
-from xgboost import train
 
 from model.train import train_model, read_image, get_status
 
-CHECK_EVERY_SECONDS = 60
+# Standards
+CHECK_EVERY_SECONDS = 5
 FILE_PATH = './files/images'
 MODEL_SAVE_PATH = './model/model.pickles'
+LAST_FILES_SAVE_PATH = './model/last_files.pickles'
 last_files = list()
 
+# Startup
 app = FastAPI()
 
 origins = [
@@ -35,6 +36,10 @@ app.add_middleware(
 
 @app.get('/', response_class=HTMLResponse)
 def get_home():
+    '''
+    Load homepage (picture & status)
+    '''
+
     with open('./files/index.html', 'r') as f:
         html = f.read()
     return html
@@ -42,6 +47,10 @@ def get_home():
 
 @app.get("/musti")
 def get_musti():
+    '''
+    GET request to get last picture + status
+    '''
+
     # get most recent picture
     biggest = max(last_files, key=lambda f: f[1])
     
@@ -56,6 +65,10 @@ def get_musti():
         status = get_status(pred)
     else:
         status = 'Model niet geladen'
+        # Load kitkat because error
+        with open('./files/images/Error.jpg', 'rb') as im:
+            imageB64 = base64.b64encode(im.read())
+    
 
 
     return {"status": status, 'image': imageB64}
@@ -63,6 +76,9 @@ def get_musti():
 @app.on_event('startup')
 @repeat_every(seconds=CHECK_EVERY_SECONDS)
 def retrain_model():
+    '''
+    Every CHECK_EVERY_SECONDS this method gets executed. It checks whether there are new pictures or not.
+    '''
     global last_files
     def to_date(date_str):
         return dt.datetime.strptime(date_str, '%Y%m%d_%H%M%S')
@@ -72,14 +88,22 @@ def retrain_model():
     for dir in list(os.walk(FILE_PATH)):
         files.extend([dir[0] + '/' + f for f in dir[2] if reg.match(os.path.basename(f))])
 
-    files = [(f, to_date(os.path.splitext(os.path.basename(f))[0]))  for f in files]
+    files = [(f, to_date(os.path.splitext(os.path.basename(f))[0]))  for f in files]    
+    
+    # Get last files after startup
+    if not last_files:
+        last_files = pickle.load(open(LAST_FILES_SAVE_PATH, 'rb'))
 
     if files != last_files:
         last_files = files
         retrain_model()
-
+        # Save last files
+        pickle.dump(files, open(LAST_FILES_SAVE_PATH, 'wb'))
 
 def retrain_model():
-    # model = train_model()
-    # pickle.dump(model, open(MODEL_SAVE_PATH, 'wb'))
+    '''
+    Executes model training and saves the new model.
+    '''
+    model = train_model()
+    pickle.dump(model, open(MODEL_SAVE_PATH, 'wb'))
     print('Model retrained')
