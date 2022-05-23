@@ -3,5 +3,4 @@ __pycache__/*
 !Error.jpg
 *.pick
 *.pickles
-__pycache__/main.cpython-39.pyc
-model/__pycache__/train.cpython-39.pyc
+*.pyc
